@@ -1,0 +1,349 @@
+repeat task.wait() until game:IsLoaded()
+_G.DoingIt = false
+_G.ServerHop = true
+    local Player = game.Players.LocalPlayer
+    local wS = game.Workspace
+    local cam = wS.CurrentCamera
+    local mouse = Player:GetMouse()
+    local ClosestPlr = function()
+        local Closest = nil
+        local Distance = 9e9;
+        for i,v in pairs(game.Players:GetPlayers()) do
+            if v ~= Player then
+                if wS[v.Name]:FindFirstChild("Humanoid") and wS[v.Name].Humanoid.Health ~= 0 then
+                    local pos = cam:WorldToViewportPoint(wS[v.Name].HumanoidRootPart.Position)
+                    local magnitude = (Vector2.new(pos.X, pos.Y) - Vector2.new(mouse.X, mouse.Y)).magnitude;
+                    if magnitude < Distance then
+                        Closest = wS[v.Name]
+                        Distance = magnitude
+                    end
+                end
+            end
+        end
+        return Closest
+    end
+    
+    game:GetService('RunService').RenderStepped:connect(function()
+        for i,v in pairs(game.Workspace.KnifeHost:GetDescendants()) do
+            if v:IsA"Part" then
+                if v.Archivable == true then
+                    local plrpos  = ClosestPlr().baseHitbox.CFrame
+                    v.CFrame = plrpos
+                end
+            end
+        end
+    end)
+    spawn(function()
+        for i,v in next, getconnections(game:GetService("Players").LocalPlayer.Idled) do
+            v:Disable()
+        end
+    end)
+    if _G.ServerHop == true then
+        _G.DoingIt = true
+    else
+        _G.DoingIt = false
+    end
+
+    
+    -- Variables
+    local Players = game:GetService("Players");
+    local Player = Players.LocalPlayer;
+    local Plrs = Players
+    local Plr = Plrs.LocalPlayer
+    local TweenService = game:GetService("TweenService")
+    
+    -- Get Target Function
+    local function MyTarget()
+        if Player.PlayerGui.ScreenGui.UI.Target.TargetText.Text ~= "prisman389023" and Player.PlayerGui.ScreenGui.UI.Target.TargetText.Text ~= Plr.Name then
+            return Player.PlayerGui.ScreenGui.UI.Target.TargetText.Text;
+        else
+            return nil
+        end
+    end
+    
+    
+    -- Knife Function
+    local function HasKnife()
+        return Player.Backpack:FindFirstChildOfClass("Tool") ~= nil or Player.Character and Player.Character:FindFirstChildOfClass("Tool") ~= nil or false;
+    end
+    
+    local Throw = function(args1, args2, args3)
+        return game:GetService("ReplicatedStorage").Remotes.ThrowKnife:FireServer(args1,args2,args3);
+    end
+    
+    --// Bypass \\--
+    spawn(function()
+        game:GetService("RunService").Stepped:Connect(function()
+            local Character = game:GetService("Players").LocalPlayer.Character
+            for i, v in next, getconnections(Character:WaitForChild("HumanoidRootPart"):GetPropertyChangedSignal("CFrame")) do
+                v:Disable()
+            end
+        end)
+    end)
+    
+    local gmt = getrawmetatable(game)
+    local oldindex = gmt.__index
+    
+    setreadonly(gmt, false)
+    
+    gmt.__index = newcclosure(function(t, k)
+        if type(t) == "userdata" and oldindex(t, "Name") == "HumanoidRootPart" and k == "Size" then
+            return Vector3.new(2,2,1)
+        end
+        return oldindex(t, k)
+    end)
+    
+    spawn(function()
+        local Remotes = game:GetService("ReplicatedStorage").Remotes
+    
+        local ShitAntiCheat = {
+            Remotes:WaitForChild("clientkick"),
+            Remotes.ClanRemotes:WaitForChild("KickPlayer"),
+            Remotes.ClanRemotes:WaitForChild("LocalKick"),
+        }
+    
+        do
+            for i, v in next, ShitAntiCheat do
+                if v ~= nil then
+                    v:Destroy()
+                end
+            end
+        end
+    end)
+    --// Bypass \\--
+    
+    -- tping
+    spawn(function()
+        game:GetService("RunService").Stepped:Connect(function()
+            local rPart = Plr.Character:WaitForChild("HumanoidRootPart")
+            local Target = workspace[MyTarget()]:WaitForChild("HumanoidRootPart")
+            local Time = (rPart.Position - Target.Position).Magnitude / 10000
+            local Tween = TweenService:Create(rPart,TweenInfo.new(Time,Enum.EasingStyle.Linear),{CFrame = Target.CFrame * CFrame.new(0, 0, 0)})
+            if _G.DoingIt == true then
+                local Tool = Player.Backpack:FindFirstChildOfClass("Tool") or Player.Character:FindFirstChildOfClass("Tool");
+                if Tool then
+                    if game.Players.LocalPlayer.PlayerGui.ScreenGui.UI.Target.Visible == true then
+                        if (Player.Character.HumanoidRootPart.Position - workspace[MyTarget()].HumanoidRootPart.Position).Magnitude < 3.35 then
+                            Tween:Cancel()
+                            Player.Character.HumanoidRootPart.CFrame = workspace[MyTarget()].HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+                        else
+                            Tween:Play()
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+    
+    spawn(function()
+        game:GetService("RunService").Stepped:Connect(function()
+            if _G.DoingIt == true then
+                for i,v in next, Players:GetPlayers() do
+                    if v.Name ~= Player.Name and v.Name == MyTarget() then
+                        workspace[v.Name]:WaitForChild("HumanoidRootPart").Size = Vector3.new(15, 15, 15)
+                        workspace[v.Name]:WaitForChild("HumanoidRootPart").Color = Color3.fromRGB(0, 0, 0)
+                        workspace[v.Name]:WaitForChild("HumanoidRootPart").Transparency = 1
+                        workspace[v.Name]:WaitForChild("HumanoidRootPart").Material = "Plastic"
+                        workspace[v.Name]:WaitForChild("HumanoidRootPart").CanCollide = false
+                    end
+                end
+            end
+        end)
+    end)
+    
+    -- Throw
+    game:GetService("RunService").Stepped:Connect(function()
+        local function randompart()
+            local hits = {
+                0,
+                1,
+                2,
+                -1,
+                -2,
+            }
+            return hits[math.random(1, #hits)]
+        end
+                if game.Players.LocalPlayer.Backpack:FindFirstChild("Knife") then
+                    for i, v in pairs(game.Players:GetPlayers()) do
+                        if v.Name == game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.UI.Target.TargetText.Text then
+                            if v.Name ~= game.Players.LocalPlayer.Name then
+                                game.Players.LocalPlayer.Character.Humanoid:EquipTool(Game.Players.LocalPlayer.Backpack.Knife)
+                                wait(.3)
+                                local Target = game:GetService("Players").LocalPlayer.PlayerGui.ScreenGui.UI.Target.TargetText.Text
+                                local x = game.Workspace[Target].Head.Position.X + randompart()
+                                local y = game.Workspace[Target].Head.Position.Y + randompart()
+                                local z = game.Workspace[Target].Head.Position.Z + randompart()
+                                local args = {
+                                    [1] = Vector3.new(x, y, z),
+                                    [2] = 0,
+                                    [3] = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+                                }
+                                game:GetService("ReplicatedStorage").Remotes.ThrowKnife:FireServer(unpack(args))
+                                wait(.1)
+                                game:GetService("Players").localPlayer.Character:FindFirstChildOfClass("Humanoid"):UnequipTools()
+                                wait(.6)
+                            end
+                        end
+                    end
+                end
+    end)
+    
+    local ClosestPlayer = function()
+    local Closest = nil
+    local Distance = 9e9
+    for i, v in next, game:GetService("Players"):GetPlayers() do
+        if v.Name ~= Player.Name then
+            if wS[v.Name] and wS[v.Name]:FindFirstChild("Humanoid") and wS[v.Name]:FindFirstChild("Humanoid").Health ~= 0 then
+                local Magnitude = (Player.Character.Head.Position - wS[v.Name].Head.Position).Magnitude
+                if Magnitude < Distance then
+                    Closest = wS[v.Name]
+                    Distance = Magnitude
+                    end
+                end
+            end
+        end
+    return Closest
+end
+local cooldown = false
+
+    
+    
+    spawn(function()
+        while task.wait(.15) do
+            local Tool = Player.Backpack:FindFirstChildOfClass("Tool") or Player.Character:FindFirstChildOfClass("Tool")
+            Player.Character:WaitForChild("Humanoid"):EquipTool(Tool)
+        end
+    end)
+    
+    -- Float
+    spawn(function()
+        local Players = game:GetService("Players");
+        local RunService = game:GetService("RunService");
+        local LocalPlayer = Players.LocalPlayer;
+        local Connection;
+        local Force;
+        
+        local function GetMass(Model)
+            local Mass = 0;
+            
+            for i,v in next,Model:GetDescendants() do
+                if v:IsA("BasePart") then
+                    Mass = Mass + v:GetMass();
+                end
+            end
+            
+            return Mass;
+        end
+        
+        local function Float(Character)
+            if Connection then
+                Connection:Disconnect();
+                Connection = nil;
+            end
+            
+            if not Force then
+                Force = Instance.new("BodyForce");
+            end
+            
+            local Root = Character:WaitForChild("HumanoidRootPart");
+            
+            Force.Parent = Root;
+            
+            Connection = RunService.Stepped:Connect(function()
+                if (LocalPlayer.Character:WaitForChild("HumanoidRootPart").Position - game:GetService("Workspace").FountainKnife.Position).Magnitude > 300 and _G.DoingIt == true then
+                    Root.Velocity = Vector3.new(Root.Velocity.X, 0, Root.Velocity.Z);
+                    Force.Force = Vector3.new(0, GetMass(Character) * workspace.Gravity, 0);
+                else
+                    Force.Force = Vector3.zero;
+                end
+            end)
+        end
+        
+        if LocalPlayer.Character then
+            Float(LocalPlayer.Character);
+        end
+        
+        LocalPlayer.CharacterAdded:Connect(Float);
+    end)
+    
+    -- Noclip
+    spawn(function()
+        while true do
+            if _G.DoingIt == true then
+                for _, v in next, game:GetService("Players").LocalPlayer.Character:GetDescendants() do
+                    if v:IsA("BasePart") then
+                        v.CanCollide = false
+                    end
+                end
+            end
+            
+            game:GetService("RunService").Stepped:wait()
+        end
+    end)
+    
+
+    
+    
+    
+     task.spawn(function()
+    game.RunService.Stepped:connect(function()
+        for i,v in pairs(game.Workspace.EventCurrency:GetDescendants()) do
+            if v:IsA"TouchTransmitter" then
+            firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, v.Parent, 0) 
+            task.wait()
+            firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, v.Parent, 1)
+        end
+    end
+end)
+end)
+
+
+        
+
+
+
+
+
+
+
+        
+        
+        
+        
+        game.Lighting.Ambient = Color3.fromRGB(255,0,255)
+
+        game.Lighting.OutdoorAmbient = Color3.fromRGB(255,0,255)
+        
+        
+        game.Lighting.IndoorAmbient = Color3.fromRGB(255,0,255)
+        
+        game.Lighting.InsideAmbient = Color3.fromRGB(255,0,255)
+        
+                game.Players.LocalPlayer.Character['Right Leg']:remove()
+game.Players.LocalPlayer.Character['Left Leg']:remove()
+
+
+ game.RunService.Heartbeat:Connect(function()
+game.workspace.CurrentCamera.FieldOfView = 80
+end)
+
+
+
+for _, v in next, getscripts() do
+    if v.Name == "reeeee" then
+        local closure = getscriptclosure(v)
+        for index, _ in next, getprotos(closure) do
+            local proto = getproto(closure, index, true)[1]
+            if proto then
+                hookfunction(proto, function() end)    
+                warn(proto, "hooked")
+            end
+        end
+    end
+end
+
+local networkTable = debug.getupvalue(getrawmetatable(require(game:GetService("ReplicatedStorage").BAC.Network)).__index, 1)
+local Network = {
+    FireServer = debug.getupvalue(getrawmetatable(networkTable.FireServer).__call, 1)
+}
+print(Network.FireServer)
